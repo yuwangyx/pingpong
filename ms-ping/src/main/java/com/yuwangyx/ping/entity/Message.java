@@ -17,6 +17,6 @@ public class Message {
     private String content;
     @JsonFormat(locale = "zh", timezone = "Asia/Shanghai", pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime dateTime;
-    private final String appName;
-    private final String ipAddress;
+    private String appName;
+    private String ipAddress;
 }
