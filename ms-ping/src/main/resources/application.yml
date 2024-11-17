@@ -1,0 +1,30 @@
+server:
+  port: 18082
+  servlet:
+    context-path: /ping
+
+spring:
+  application:
+    name: ms-ping
+  data:
+    mongodb:
+      uri: mongodb://192.168.0.21:27017/pingpong
+
+rocketmq:
+  name-server: 192.168.0.21:9876
+  producer:
+    group: testGroup
+  consumer:
+    group: testGroup
+
+rateLimiter:
+  lockFilePath: E:\workspace\pingpong\rate_limit.lock
+  maxRequestsPerSecond: 2
+  spring:
+    profiles:
+      active: test
+
+ping:
+  task:
+    scheduling:
+      enabled: true

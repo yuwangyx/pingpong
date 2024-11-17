@@ -1,0 +1,7 @@
+spring:
+  profiles:
+    active: test
+
+rateLimiter:
+  lockFilePath: E:\workspace\pingpong\rate_limit_temp.lock
+  maxRequestsPerSecond: 2

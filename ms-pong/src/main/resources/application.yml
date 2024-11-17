@@ -1,0 +1,10 @@
+server:
+  port: 18088
+  servlet:
+    context-path: /pong
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
