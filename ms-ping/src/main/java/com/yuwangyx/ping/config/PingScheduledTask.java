@@ -18,6 +18,11 @@ public class PingScheduledTask {
 
     private static final Random random = new Random();
 
+    /**
+     * Scheduled ping task
+     *
+     * @throws Exception
+     */
     @Scheduled(fixedRate = 100)
     public void scheduledPing() throws Exception {
         // random delay 0 - 50 ms

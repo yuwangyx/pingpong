@@ -2,27 +2,27 @@ package com.yuwangyx.ping.util;
 
 public class SnowflakeIdGenerator {
 
-    // 起始时间戳（2023-01-01 00:00:00）
+    // Start timestamp (2023-01-01 00:00:00)
     private final static long START_TIMESTAMP = 1672531200000L;
 
-    // 每一部分占用的位数
+    // Number of bits used for each part
     private final static long TIMESTAMP_BITS = 41L;
     private final static long MACHINE_ID_BITS = 10L;
     private final static long SEQUENCE_BITS = 12L;
 
-    // 每一部分的最大值
+    // Maximum value for each part
     private final static long MAX_MACHINE_ID = ~(-1L << MACHINE_ID_BITS);
     private final static long MAX_SEQUENCE = ~(-1L << SEQUENCE_BITS);
 
-    // 每一部分向左的位移
+    // Left shift for each part
     private final static long MACHINE_ID_SHIFT = SEQUENCE_BITS;
     private final static long TIMESTAMP_LEFT_SHIFT = SEQUENCE_BITS + MACHINE_ID_BITS;
 
-    // 机器ID
+    // Machine ID
     private long machineId;
-    // 序列号
+    // Sequence number
     private long sequence = 0L;
-    // 上一次时间戳
+    // Last timestamp
     private long lastTimestamp = -1L;
 
     public SnowflakeIdGenerator(long machineId) {

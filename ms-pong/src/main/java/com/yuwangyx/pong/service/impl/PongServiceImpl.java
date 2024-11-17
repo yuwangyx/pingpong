@@ -1,3 +1,4 @@
+
 package com.yuwangyx.pong.service.impl;
 
 import com.yuwangyx.pong.service.PongService;
@@ -12,29 +13,55 @@ import reactor.core.publisher.Mono;
 import java.time.Duration;
 import java.time.Instant;
 
-
+/**
+ * Implementation of the PongService interface to handle Pong requests.
+ */
 @Service
 public class PongServiceImpl implements PongService {
 
+    /**
+     * Counter for successfully processed requests.
+     */
     private static int successCount = 0;
+
+    /**
+     * Counter for rate-limited requests.
+     */
     private static int failCount = 0;
+
+    /**
+     * Custom rate limiter configuration to allow 1 request per second with a timeout of 100 milliseconds.
+     */
     RateLimiterConfig customConfig = RateLimiterConfig.custom()
-            .timeoutDuration(Duration.ofMillis(100))
-            .limitForPeriod(1)
-            .limitRefreshPeriod(Duration.ofSeconds(1))
+            .timeoutDuration(Duration.ofMillis(100)) // Set the timeout duration
+            .limitForPeriod(1) // Set the number of permits per period
+            .limitRefreshPeriod(Duration.ofSeconds(1)) // Set the refresh period
             .build();
-    // 创建限流器注册表
+
+    /**
+     * Create a rate limiter registry with the custom configuration.
+     */
     RateLimiterRegistry registry = RateLimiterRegistry.of(customConfig);
 
-    // 获取限流器实例
+    /**
+     * Get an instance of the rate limiter.
+     */
     private final RateLimiter rateLimiter = registry.rateLimiter("1RPSRateLimiter");
 
+    /**
+     * Handle the Pong request.
+     *
+     * @return A Mono<ServerResponse> object containing the response status and content.
+     */
     public Mono<ServerResponse> handlePong() {
-        if (rateLimiter.acquirePermission()){
-            System.out.println("allow request, current time : " + Instant.now().getEpochSecond()+ " times: " + ++successCount);
+        if (rateLimiter.acquirePermission()) {
+            // If permission is acquired, process the request and return a successful response
+            System.out.println("allow request, current time : " + Instant.now().getEpochSecond() + " times: " + ++successCount);
             return ServerResponse.ok().body(Mono.just("World"), String.class);
+        } else {
+            // If permission is not acquired, return a 429 Too Many Requests response
+            System.out.println("429          , current time : " + Instant.now().getEpochSecond() + " times: " + ++failCount);
+            return ServerResponse.status(HttpStatus.TOO_MANY_REQUESTS).body(Mono.just("Rate Limited"), String.class);
         }
-        System.out.println("429          , current time : " + Instant.now().getEpochSecond() + " times: " + ++failCount);
-        return ServerResponse.status(HttpStatus.TOO_MANY_REQUESTS).body(Mono.just("Rate Limited"), String.class);
     }
 }

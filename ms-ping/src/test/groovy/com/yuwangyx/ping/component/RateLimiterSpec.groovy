@@ -8,7 +8,7 @@ import spock.lang.Specification
 import spock.lang.Stepwise
 
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,properties = "ping.task.scheduling.enabled=false")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = "ping.task.scheduling.enabled=false")
 @ActiveProfiles("test")
 @Stepwise
 class RateLimiterSpec extends Specification {
@@ -28,7 +28,7 @@ class RateLimiterSpec extends Specification {
     def "test rejectRequest"() {
 
         when:
-        // 等待1秒
+        // Wait for 1 second to avoid being affected by other tests
         Thread.sleep(1000)
         rateLimiter.allowRequest()
         rateLimiter.allowRequest()

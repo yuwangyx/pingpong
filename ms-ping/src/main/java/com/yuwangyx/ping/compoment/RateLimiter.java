@@ -1,3 +1,4 @@
+
 package com.yuwangyx.ping.compoment;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -16,12 +17,19 @@ public class RateLimiter {
 
     @Value("${rateLimiter.lockFilePath}")
     private Path lockFilePath;
+
     @Value("${rateLimiter.maxRequestsPerSecond}")
     private int maxRequestsPerSecond;
 
+    /**
+     * Determines whether a request should be allowed based on the rate limit.
+     *
+     * @return true if the request is allowed, false otherwise.
+     * @throws IOException if an I/O error occurs.
+     */
     public boolean allowRequest() throws IOException {
         try (FileChannel channel = FileChannel.open(lockFilePath, StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE)) {
-            // 获取独占锁
+            // Acquire an exclusive lock on the file channel
             try (FileLock lock = channel.lock()) {
                 Instant now = Instant.now();
                 long currentSecond = now.getEpochSecond();
@@ -31,13 +39,21 @@ public class RateLimiter {
                     writeCounter(channel, currentSecond, currentCount + 1);
                     return true;
                 } else {
-                    // 超过限制，拒绝请求
+                    // Exceeds the limit, reject the request
                     return false;
                 }
             }
         }
     }
 
+    /**
+     * Reads the current counter from the file channel.
+     *
+     * @param channel       the file channel to read from.
+     * @param currentSecond the current second in epoch time.
+     * @return the current count of requests for the current second.
+     * @throws IOException if an I/O error occurs.
+     */
     private int readCounter(FileChannel channel, long currentSecond) throws IOException {
         ByteBuffer buffer = ByteBuffer.allocate(12); // 8 bytes for second, 4 bytes for count
         channel.position(0);
@@ -48,7 +64,7 @@ public class RateLimiter {
         int storedCount = buffer.getInt();
 
         if (storedSecond != currentSecond) {
-            // 如果存储的时间不是当前秒，重置计数器
+            // If the stored time is not the current second, reset the counter
             buffer.clear();
             buffer.putLong(currentSecond);
             buffer.putInt(0);
@@ -61,8 +77,17 @@ public class RateLimiter {
         return storedCount;
     }
 
+    /**
+     * Writes the current counter to the file channel.
+     *
+     * @param channel       the file channel to write to.
+     * @param currentSecond the current second in epoch time.
+     * @param count         the current count of requests for the current second.
+     * @throws IOException if an I/O error occurs.
+     */
     private void writeCounter(FileChannel channel, long currentSecond, int count) throws IOException {
-        ByteBuffer buffer = ByteBuffer.allocate(12); // 8 bytes for second, 4 bytes for count
+        // 12 = 8+4 , 8 bytes for second, 4 bytes for count
+        ByteBuffer buffer = ByteBuffer.allocate(12);
         buffer.putLong(currentSecond);
         buffer.putInt(count);
         buffer.flip();

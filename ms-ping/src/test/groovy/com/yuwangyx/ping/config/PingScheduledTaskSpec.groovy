@@ -6,7 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import spock.lang.Specification
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,properties = "ping.task.scheduling.enabled=true")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = "ping.task.scheduling.enabled=true")
 @ActiveProfiles("test")
 class PingScheduledTaskSpec extends Specification {
 

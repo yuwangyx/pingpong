@@ -24,9 +24,9 @@ class PingServiceSpec extends Specification {
     def setup() {
         webClientBuilder.baseUrl("http://localhost:18088/pong") >> webClientBuilder
         webClientBuilder.build() >> webClient
-        pingService = new PingServiceImpl(webClientBuilder, rocketMQTemplate,rateLimiter,"test","testIp")
+        pingService = new PingServiceImpl(webClientBuilder, rocketMQTemplate, rateLimiter, "test", "testIp")
         webClient.mutate() >> webClientBuilder
-        webClientBuilder.defaultHeader(_,_) >> webClientBuilder
+        webClientBuilder.defaultHeader(_, _) >> webClientBuilder
         webClient.get() >> specificUriSpec
         specificUriSpec.retrieve() >> responseSpec
     }
@@ -35,7 +35,7 @@ class PingServiceSpec extends Specification {
         given:
         rateLimiter.allowRequest() >> true
         webClient.mutate() >> webClientBuilder
-        webClientBuilder.defaultHeader(_,_) >> webClientBuilder
+        webClientBuilder.defaultHeader(_, _) >> webClientBuilder
         responseSpec.bodyToMono(String) >> Mono.just("World")
 
         when:
@@ -61,7 +61,7 @@ class PingServiceSpec extends Specification {
     def "test ping with 429 error"() {
         given:
         rateLimiter.allowRequest() >> true
-        def exception = new WebClientResponseException("Too Many Requests",429, "Too Many Requests", null, null, null)
+        def exception = new WebClientResponseException("Too Many Requests", 429, "Too Many Requests", null, null, null)
         def mono = Mono.error(exception)
         responseSpec.bodyToMono(String) >> mono
 
@@ -76,7 +76,7 @@ class PingServiceSpec extends Specification {
     def "test ping with other error"() {
         given:
         rateLimiter.allowRequest() >> true
-        def exception = new WebClientResponseException("Internal Server Error",500, "Internal Server Error", null, null, null)
+        def exception = new WebClientResponseException("Internal Server Error", 500, "Internal Server Error", null, null, null)
         def mono = Mono.error(exception)
         responseSpec.bodyToMono(String) >> mono
 
