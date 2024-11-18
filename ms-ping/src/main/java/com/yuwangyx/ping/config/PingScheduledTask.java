@@ -26,7 +26,7 @@ public class PingScheduledTask {
     @Scheduled(fixedRate = 100)
     public void scheduledPing() throws Exception {
         // random delay 0 - 50 ms
-        int randomDelay = random.nextInt(50);
+        int randomDelay = random.nextInt(100);
         TimeUnit.MILLISECONDS.sleep(randomDelay);
         pingService.ping().subscribe();
     }
