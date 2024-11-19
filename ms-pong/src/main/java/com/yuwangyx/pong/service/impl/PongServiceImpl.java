@@ -7,6 +7,7 @@ import io.github.resilience4j.ratelimiter.RateLimiterConfig;
 import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
@@ -51,16 +52,20 @@ public class PongServiceImpl implements PongService {
     /**
      * Handle the Pong request.
      *
+     * @param request
      * @return A Mono<ServerResponse> object containing the response status and content.
      */
-    public Mono<ServerResponse> handlePong() {
+    public Mono<ServerResponse> handlePong(ServerRequest request) {
+        ServerRequest.Headers headers = request.headers();
+        String ipAddress = headers.header("X-IP-Address") + "";
+        String appName = headers.header("X-Application-Name") + "";
         if (rateLimiter.acquirePermission()) {
             // If permission is acquired, process the request and return a successful response
-            System.out.println("allow request, current time : " + Instant.now().getEpochSecond() + " times: " + ++successCount);
+            System.out.println("allow request, current time : " + Instant.now().getEpochSecond() + " times: " + ++successCount + ", from " + appName + ":" + ipAddress);
             return ServerResponse.ok().body(Mono.just("World"), String.class);
         } else {
             // If permission is not acquired, return a 429 Too Many Requests response
-            System.out.println("429          , current time : " + Instant.now().getEpochSecond() + " times: " + ++failCount);
+            System.out.println("429          , current time : " + Instant.now().getEpochSecond() + " times: " + ++failCount + ", from " + appName + ":" + ipAddress);
             return ServerResponse.status(HttpStatus.TOO_MANY_REQUESTS).body(Mono.just("Rate Limited"), String.class);
         }
     }

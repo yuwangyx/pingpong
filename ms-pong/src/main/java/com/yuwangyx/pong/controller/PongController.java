@@ -18,7 +18,7 @@ public class PongController {
     @Bean
     public RouterFunction<ServerResponse> route() {
         // todo log the request info
-        return RouterFunctions.route(RequestPredicates.GET("/pong"), request -> pongService.handlePong());
+        return RouterFunctions.route(RequestPredicates.GET("/pong"), pongService::handlePong);
     }
 
 
