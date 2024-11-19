@@ -59,4 +59,26 @@ class SnowflakeIdGeneratorSpec extends Specification {
         then:
         id1 != id2
     }
+
+
+    def "test tilNextMillis is called when timestamp does not change"() {
+        given:
+        SnowflakeIdGenerator generator = new SnowflakeIdGenerator(0)
+        long fixedTime = System.currentTimeMillis()
+        generator.setLastTimestamp(fixedTime)
+
+        // 模拟时间停滞
+        def originalCurrentTimeMillis = System.&currentTimeMillis
+        System.metaClass.static.currentTimeMillis = { -> fixedTime }
+
+        when:
+        long id1 = generator.nextId()
+        long id2 = generator.nextId()
+
+        then:
+        id1 != id2
+
+        cleanup:
+        System.metaClass.static.currentTimeMillis = originalCurrentTimeMillis
+    }
 }
