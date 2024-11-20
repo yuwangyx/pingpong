@@ -1,6 +1,6 @@
-package com.yuwangyx.pong.controller
+package com.yuwangyx.pong.config
 
-import com.yuwangyx.pong.service.PongService
+import com.yuwangyx.pong.handler.PongHandler
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -15,18 +15,18 @@ import spock.lang.Specification
 import static org.mockito.ArgumentMatchers.any
 import static org.mockito.Mockito.when
 
-@WebFluxTest(controllers = [PongController])
-class PongControllerSpec extends Specification {
+@WebFluxTest(controllers = [RouteConfig])
+class RouteConfigSpec extends Specification {
 
     @Autowired
     WebTestClient webClient
 
     @MockBean
-    PongService pongService
+    PongHandler pongHandler
 
     def "test response success"() {
         given:
-        when(pongService.handlePong(any(ServerRequest))).thenReturn(ServerResponse.ok().body(Mono.just("World"), String.class))
+        when(pongHandler.handlePong(any(ServerRequest))).thenReturn(ServerResponse.ok().body(Mono.just("World"), String.class))
 
         when:
         def result = webClient.get()
@@ -43,7 +43,7 @@ class PongControllerSpec extends Specification {
 
     def "test response 429"() {
         given:
-        when(pongService.handlePong(any(ServerRequest))).thenReturn(ServerResponse.status(HttpStatus.TOO_MANY_REQUESTS).body(Mono.just("429"), String.class))
+        when(pongHandler.handlePong(any(ServerRequest))).thenReturn(ServerResponse.status(HttpStatus.TOO_MANY_REQUESTS).body(Mono.just("429"), String.class))
 
         when:
         def result = webClient.get()

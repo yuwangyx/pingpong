@@ -1,12 +1,10 @@
 package com.yuwangyx.pong.service;
 
 
-import org.springframework.web.reactive.function.server.ServerRequest;
-import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 public interface PongService {
 
-    Mono<ServerResponse> handlePong(ServerRequest request);
+    Mono<Boolean> handlePong(String ipAddress, String appName);
 
 }
