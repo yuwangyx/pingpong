@@ -2,20 +2,21 @@ package com.yuwangyx.ping.compoment;
 
 import com.alibaba.fastjson.JSON;
 import com.yuwangyx.ping.entity.Message;
+import com.yuwangyx.ping.repository.MessageRepository;
 import io.netty.util.internal.StringUtil;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 @Component
 @RocketMQMessageListener(topic = "pingpong_topic", consumerGroup = "testGroup")
 public class MessageListener implements RocketMQListener<String> {
 
-    private final MongoTemplate mongoTemplate;
+    private final MessageRepository messageRepository;
 
-    public MessageListener(MongoTemplate mongoTemplate) {
-        this.mongoTemplate = mongoTemplate;
+    public MessageListener(MessageRepository messageRepository) {
+        this.messageRepository = messageRepository;
     }
 
     @Override
@@ -23,7 +24,8 @@ public class MessageListener implements RocketMQListener<String> {
         System.out.println("Received message: " + message);
         if (!StringUtil.isNullOrEmpty(message)) {
             try {
-                mongoTemplate.save(JSON.parseObject(message, Message.class));
+                Mono<Message> messageMono = Mono.just(JSON.parseObject(message, Message.class));
+                messageMono.flatMap(messageRepository::save).subscribe();
             } catch (Exception e) {
                 e.printStackTrace();
                 // log the error
