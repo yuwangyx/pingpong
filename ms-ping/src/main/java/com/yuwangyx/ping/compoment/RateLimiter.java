@@ -3,6 +3,7 @@ package com.yuwangyx.ping.compoment;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -27,23 +28,29 @@ public class RateLimiter {
      * @return true if the request is allowed, false otherwise.
      * @throws IOException if an I/O error occurs.
      */
-    public boolean allowRequest() throws IOException {
-        try (FileChannel channel = FileChannel.open(lockFilePath, StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE)) {
-            // Acquire an exclusive lock on the file channel
-            try (FileLock lock = channel.lock()) {
-                Instant now = Instant.now();
-                long currentSecond = now.getEpochSecond();
-                int currentCount = readCounter(channel, currentSecond);
+    public Mono<Boolean> allowRequest() {
+        return Mono.create(monoSink -> {
+            try (FileChannel channel = FileChannel.open(lockFilePath, StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE)) {
+                // Acquire an exclusive lock on the file channel
+                try (FileLock lock = channel.lock()) {
+                    Instant now = Instant.now();
+                    long currentSecond = now.getEpochSecond();
 
-                if (currentCount < maxRequestsPerSecond) {
-                    writeCounter(channel, currentSecond, currentCount + 1);
-                    return true;
-                } else {
-                    // Exceeds the limit, reject the request
-                    return false;
+                    // read and reset count
+                    int currentCount = readCounter(channel, currentSecond);
+
+                    if (currentCount < maxRequestsPerSecond) {
+                        writeCounter(channel, currentSecond, currentCount + 1);
+                        monoSink.success(true);
+                    } else {
+                        // Exceeds the limit, reject the request
+                        monoSink.success(false);
+                    }
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        }
+        });
     }
 
     /**

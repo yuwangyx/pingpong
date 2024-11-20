@@ -33,7 +33,7 @@ class PingServiceSpec extends Specification {
 
     def "test ping with rate limiter allowed"() {
         given:
-        rateLimiter.allowRequest() >> true
+        rateLimiter.allowRequest() >> Mono.just(true)
         webClient.mutate() >> webClientBuilder
         webClientBuilder.defaultHeader(_, _) >> webClientBuilder
         responseSpec.bodyToMono(String) >> Mono.just("World")
@@ -48,7 +48,7 @@ class PingServiceSpec extends Specification {
 
     def "test ping with rate limiter not allowed"() {
         given:
-        rateLimiter.allowRequest() >> false
+        rateLimiter.allowRequest() >> Mono.just(false)
 
         when:
         def result = pingService.ping().block()
@@ -60,7 +60,7 @@ class PingServiceSpec extends Specification {
 
     def "test ping with 429 error"() {
         given:
-        rateLimiter.allowRequest() >> true
+        rateLimiter.allowRequest() >> Mono.just(true)
         def exception = new WebClientResponseException("Too Many Requests", 429, "Too Many Requests", null, null, null)
         def mono = Mono.error(exception)
         responseSpec.bodyToMono(String) >> mono
@@ -75,7 +75,7 @@ class PingServiceSpec extends Specification {
 
     def "test ping with other error"() {
         given:
-        rateLimiter.allowRequest() >> true
+        rateLimiter.allowRequest() >> Mono.just(true)
         def exception = new WebClientResponseException("Internal Server Error", 500, "Internal Server Error", null, null, null)
         def mono = Mono.error(exception)
         responseSpec.bodyToMono(String) >> mono

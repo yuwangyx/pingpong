@@ -19,7 +19,7 @@ class RateLimiterSpec extends Specification {
     def "test allowRequest"() {
 
         when:
-        def result = rateLimiter.allowRequest()
+        def result = rateLimiter.allowRequest().block()
 
         then:
         result
@@ -30,11 +30,13 @@ class RateLimiterSpec extends Specification {
         when:
         // Wait for 1 second to avoid being affected by other tests
         Thread.sleep(1000)
-        rateLimiter.allowRequest()
-        rateLimiter.allowRequest()
-        def result3 = rateLimiter.allowRequest()
+        def result1 = rateLimiter.allowRequest().block()
+        def result2 = rateLimiter.allowRequest().block()
+        def result3 = rateLimiter.allowRequest().block()
 
         then:
+        result1
+        result2
         !result3
     }
 }

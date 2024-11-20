@@ -45,38 +45,40 @@ public class PingServiceImpl implements PingService {
 
         String ipPort = ipAddress + ":" + port;
 
-        if (rateLimiter.allowRequest()) {
-            return Mono.defer(() -> {
-                WebClient modifiedClient = webClient.mutate()
-                        .defaultHeader("X-Application-Name", appName)
-                        .defaultHeader("X-IP-Address", ipPort)
-                        .build();
-                return modifiedClient.get()
-                        .retrieve()
-                        .bodyToMono(String.class)
-                        .doOnSuccess(content::set)
-                        .onErrorResume(WebClientResponseException.class, e -> {
-                            if (e.getStatusCode().value() == 429) {
-                                // throttled from pong service
-                                content.set("sent & Pong throttled");
-                            } else {
-                                // request failed
-                                content.set("Request failed: " + e.getMessage());
-                            }
-                            return Mono.just("Throttled");
-                        });
-            }).doFinally(signalType -> {
-                System.out.println(content.get());
-                Message message = Message.builder().id(id).content(content.get()).dateTime(now).appName(appName).ipAddress(ipPort).build();
-                rocketMQTemplate.convertAndSend("pingpong_topic", JSON.toJSONString(message));
-            });
-        }
-
-        // being rate limited - 2RPS
-        content.set("not sent as being rate limited");
-        Message message = Message.builder().id(id).content(content.get()).dateTime(now).appName(appName).ipAddress(ipPort).build();
-        System.out.println(content.get());
-        rocketMQTemplate.convertAndSend("pingpong_topic", JSON.toJSONString(message));
-        return Mono.just("Rate Limited");
+        Mono<Boolean> allowRequest = rateLimiter.allowRequest();
+        return allowRequest.flatMap(allow -> {
+            if (allow) {
+                return Mono.defer(() -> {
+                    WebClient modifiedClient = webClient.mutate()
+                            .defaultHeader("X-Application-Name", appName)
+                            .defaultHeader("X-IP-Address", ipPort)
+                            .build();
+                    return modifiedClient.get()
+                            .retrieve()
+                            .bodyToMono(String.class)
+                            .doOnSuccess(content::set)
+                            .onErrorResume(WebClientResponseException.class, e -> {
+                                if (e.getStatusCode().value() == 429) {
+                                    // throttled from pong service
+                                    content.set("sent & Pong throttled");
+                                } else {
+                                    // request failed
+                                    content.set("Request failed: " + e.getMessage());
+                                }
+                                return Mono.just("Throttled");
+                            });
+                }).doFinally(signalType -> {
+                    System.out.println(content.get());
+                    Message message = Message.builder().id(id).content(content.get()).dateTime(now).appName(appName).ipAddress(ipPort).build();
+                    rocketMQTemplate.convertAndSend("pingpong_topic", JSON.toJSONString(message));
+                });
+            }
+            // being rate limited - 2RPS
+            content.set("not sent as being rate limited");
+            Message message = Message.builder().id(id).content(content.get()).dateTime(now).appName(appName).ipAddress(ipPort).build();
+            System.out.println(content.get());
+            rocketMQTemplate.convertAndSend("pingpong_topic", JSON.toJSONString(message));
+            return Mono.just("Rate Limited");
+        });
     }
 }
