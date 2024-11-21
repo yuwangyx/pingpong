@@ -17,6 +17,7 @@ class PingServiceSpec extends Specification {
     def webClient = Mock(WebClient)
     def rocketMQTemplate = Mock(RocketMQTemplate)
     def specificUriSpec = Mock(WebClient.RequestHeadersUriSpec)
+    def uriSpec = Mock(WebClient.UriSpec)
     def responseSpec = Mock(WebClient.ResponseSpec)
     def rateLimiter = Mock(RateLimiter)
 
@@ -28,6 +29,7 @@ class PingServiceSpec extends Specification {
         webClient.mutate() >> webClientBuilder
         webClientBuilder.defaultHeader(_, _) >> webClientBuilder
         webClient.get() >> specificUriSpec
+        specificUriSpec.uri(_, _) >> specificUriSpec
         specificUriSpec.retrieve() >> responseSpec
     }
 
@@ -44,6 +46,21 @@ class PingServiceSpec extends Specification {
         then:
         1 * rocketMQTemplate.convertAndSend("pingpong_topic", _)
         result == "World"
+    }
+
+    def "test ping with rate limiter allowed with other success"() {
+        given:
+        rateLimiter.allowRequest() >> Mono.just(true)
+        webClient.mutate() >> webClientBuilder
+        webClientBuilder.defaultHeader(_, _) >> webClientBuilder
+        responseSpec.bodyToMono(String) >> Mono.just("success")
+
+        when:
+        def result = pingService.ping().block()
+
+        then:
+        1 * rocketMQTemplate.convertAndSend("pingpong_topic", _)
+        result == "success"
     }
 
     def "test ping with rate limiter not allowed"() {

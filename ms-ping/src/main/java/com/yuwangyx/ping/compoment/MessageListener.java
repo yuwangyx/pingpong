@@ -21,7 +21,7 @@ public class MessageListener implements RocketMQListener<String> {
 
     @Override
     public void onMessage(String message) {
-        System.out.println("Received message: " + message);
+//        System.out.println("Received message: " + message);
         if (!StringUtil.isNullOrEmpty(message)) {
             try {
                 Mono<Message> messageMono = Mono.just(JSON.parseObject(message, Message.class));

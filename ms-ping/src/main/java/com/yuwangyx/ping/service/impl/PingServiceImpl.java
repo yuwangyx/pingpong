@@ -57,11 +57,13 @@ public class PingServiceImpl implements PingService {
                             .uri("http://localhost:18088/pong", "Hello")
                             .retrieve()
                             .bodyToMono(String.class)
-                            .doOnSuccess(content::set)
+                            .doOnSuccess(message -> {
+                                content.set("World".equals(message)?"Request sent & Pong Respond.":message);
+                            })
                             .onErrorResume(WebClientResponseException.class, e -> {
                                 if (e.getStatusCode().value() == 429) {
                                     // throttled from pong service
-                                    content.set("sent & Pong throttled");
+                                    content.set("Request sent & Pong throttled it.");
                                 } else {
                                     // request failed
                                     content.set("Request failed: " + e.getMessage());
@@ -75,7 +77,7 @@ public class PingServiceImpl implements PingService {
                 });
             }
             // being rate limited - 2RPS
-            content.set("not sent as being rate limited");
+            content.set("Request not sent as being \"rate limited\".");
             Message message = Message.builder().id(id).content(content.get()).dateTime(now).appName(appName).ipAddress(ipPort).build();
             System.out.println(content.get());
             rocketMQTemplate.convertAndSend("pingpong_topic", JSON.toJSONString(message));
