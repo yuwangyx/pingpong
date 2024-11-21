@@ -20,9 +20,6 @@ rocketmq:
 rateLimiter:
   lockFilePath: E:\workspace\pingpong\rate_limit.lock
   maxRequestsPerSecond: 2
-  spring:
-    profiles:
-      active: test
 
 ping:
   task:

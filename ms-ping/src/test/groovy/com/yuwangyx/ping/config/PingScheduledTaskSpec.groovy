@@ -21,11 +21,10 @@ class PingScheduledTaskSpec extends Specification {
 
         when:
         // make OverlappingFileLockException for RateLimiter catch
-        FileChannel channel = FileChannel.open(Paths.get("E:\\workspace\\pingpong\\rate_limit_temp.lock"), StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE)
-        FileLock lock = channel.lock()
-        sleep(1000)
-        lock.release()
-
+//        FileChannel channel = FileChannel.open(Paths.get("E:\\workspace\\pingpong\\rate_limit_temp.lock"), StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE)
+//        FileLock lock = channel.lock()
+//        sleep(1000)
+//        lock.release()
         pingScheduledTask.scheduledPing()
 
         then:

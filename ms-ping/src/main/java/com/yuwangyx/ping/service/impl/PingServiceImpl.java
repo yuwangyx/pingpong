@@ -29,7 +29,7 @@ public class PingServiceImpl implements PingService {
     private final String port;
 
     public PingServiceImpl(WebClient.Builder webClientBuilder, RocketMQTemplate rocketMQTemplate, RateLimiter rateLimiter, @Value("${spring.application.name}") String appName, @Value("${server.port}") String port) throws UnknownHostException {
-        this.webClient = webClientBuilder.baseUrl("http://localhost:18088/pong").build();
+        this.webClient = webClientBuilder.build();
         this.rocketMQTemplate = rocketMQTemplate;
         this.rateLimiter = rateLimiter;
         this.appName = appName;
@@ -54,6 +54,7 @@ public class PingServiceImpl implements PingService {
                             .defaultHeader("X-IP-Address", ipPort)
                             .build();
                     return modifiedClient.get()
+                            .uri("http://localhost:18088/pong", "Hello")
                             .retrieve()
                             .bodyToMono(String.class)
                             .doOnSuccess(content::set)
