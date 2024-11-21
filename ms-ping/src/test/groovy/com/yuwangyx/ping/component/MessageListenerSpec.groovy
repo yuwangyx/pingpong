@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON
 import com.yuwangyx.ping.compoment.MessageListener
 import com.yuwangyx.ping.entity.Message
 import com.yuwangyx.ping.repository.MessageRepository
+import reactor.core.publisher.Mono
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -22,9 +23,11 @@ class MessageListenerSpec extends Specification {
         given:
         String validMessageJson = '{"id":1,"content":"Hello World"}'
         Message expectedMessage = JSON.parseObject(validMessageJson, Message.class)
+        messageRepository.save(_,_) >> Mono.just("OK")
 
         when:
         messageListener.onMessage(validMessageJson)
+
 
         then:
         1 * messageRepository.save(expectedMessage)

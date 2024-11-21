@@ -3,6 +3,11 @@ server:
   servlet:
     context-path: /pong
 
+rocketmq:
+  name-server: 192.168.0.21:9876
+  consumer:
+    group: testGroup
+
 management:
   endpoints:
     web:

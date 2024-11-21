@@ -7,6 +7,7 @@ import spock.lang.Specification
 
 import java.nio.channels.FileChannel
 import java.nio.channels.FileLock
+import java.nio.channels.OverlappingFileLockException
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 
@@ -23,12 +24,14 @@ class PingScheduledTaskSpec extends Specification {
         // make OverlappingFileLockException for RateLimiter catch
         FileChannel channel = FileChannel.open(Paths.get("E:\\workspace\\pingpong\\rate_limit_temp.lock"), StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE)
         FileLock lock = channel.lock()
-        sleep(1000)
+        FileLock lock2 = channel.lock()
+        sleep(2000)
         lock.release()
-
+        lock2.release()
         pingScheduledTask.scheduledPing()
 
         then:
-        noExceptionThrown()
+        thrown(OverlappingFileLockException.class)
+
     }
 }
